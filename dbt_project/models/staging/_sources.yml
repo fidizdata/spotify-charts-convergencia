@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: raw          
+    schema: public      # schema real en Postgres donde está la tabla
+    tables:
+      - name: spotify_charts   # nombre real de la tabla
+        description: "Datos crudos cargados por el script de ingesta desde el CSV de Spotify Charts"

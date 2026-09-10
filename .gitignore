@@ -1,0 +1,15 @@
+# Datos crudos (pesados, no se versionan)
+data/
+
+# Variables de entorno con credenciales
+.env
+!.env.example
+
+# Entornos virtuales (por si aparecen en cualquier subcarpeta)
+.venv/
+__pycache__/
+*.pyc
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db

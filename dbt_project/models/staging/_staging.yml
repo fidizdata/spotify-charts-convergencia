@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_spotify_charts
+    description: "Datos de Spotify Charts limpios y renombrados, un registro por título/región/fecha/chart"
+    columns:
+      - name: posicion
+        description: "Posición en el ranking"
+        data_tests:
+          - not_null
+
+
+      - name: region
+        description: "Región del chart"
+        data_tests:
+          - not_null
+
+      - name: fecha
+        description: "Fecha del chart"
+        data_tests:
+          - not_null
