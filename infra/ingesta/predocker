@@ -12,7 +12,7 @@ docker run -it -e PGADMIN_DEFAULT_EMAIL="admin@admin.com" -e PGADMIN_DEFAULT_PAS
 http://localhost:8085/browser/
 
 #crear la imagen con el dockerfile
-docker build -t mi_imagen_personalizada .
+docker build -t spotify_charts_ingest:latest .
 
 #correr el contenedor
 docker run -it --rm --network=infra_default --env-file .env -v "${PWD}/../../data:/data" spotify_charts_ingest:latest
