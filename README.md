@@ -2,6 +2,13 @@
 
 Guía para clonar el repo y dejar todo funcionando en tu PC: base de datos, ingesta del CSV y transformaciones con dbt.
 
+## 🎯 Objetivo del Proyecto
+Construir un pipeline de datos robusto, contenerizado y reproducible para procesar, almacenar y transformar el histórico de los charts de Spotify. 
+
+El flujo comprende:
+1. **Ingesta y Almacenamiento:** Volcado automatizado de archivos CSV masivos hacia una base de datos relacional (PostgreSQL) usando contenedores de Docker.
+2. **Modelado y Transformación:** Limpieza y estructuración de los datos mediante dbt para habilitar consultas analíticas complejas y eficientes.
+
 ## Requisitos previos
 
 - Docker Desktop instalado y corriendo
