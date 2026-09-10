@@ -2,7 +2,7 @@
 
 Guía para clonar el repo y dejar todo funcionando en tu PC: base de datos, ingesta del CSV y transformaciones con dbt.
 
-## 🎯 Objetivo del Proyecto
+## Objetivo del Proyecto
 Construir un pipeline de datos robusto, contenerizado y reproducible para procesar, almacenar y transformar el histórico de los charts de Spotify. 
 
 El flujo comprende:
