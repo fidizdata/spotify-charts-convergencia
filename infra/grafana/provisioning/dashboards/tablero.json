@@ -3,7 +3,7 @@
   "kind": "Dashboard",
   "metadata": {
     "name": "000000039",
-    "generation": 45,
+    "generation": 57,
     "creationTimestamp": "2026-09-11T17:34:57Z",
     "labels": {},
     "annotations": {}
@@ -168,7 +168,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(pg_stat_database_xact_commit{instance=\"$instance\", datname=~\"${datname:regex}\"}[1m]))",
+                        "expr": "sum(rate(pg_stat_database_xact_commit{instance=\"$instance\", datname=~\"${datname}\"}[1m]))",
                         "format": "time_series",
                         "intervalFactor": 1,
                         "legendFormat": "Commits / sec",
@@ -188,7 +188,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(pg_stat_database_xact_rollback{instance=\"$instance\", datname=~\"${datname:regex}\"}[1m]))",
+                        "expr": "sum(rate(pg_stat_database_xact_rollback{instance=\"$instance\", datname=~\"${datname}\"}[1m]))",
                         "format": "time_series",
                         "interval": "",
                         "intervalFactor": 1,
@@ -339,7 +339,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "(\n  sum(rate(pg_stat_database_blks_hit{datname=~\"${datname:regex}\"}[1m]))\n  /\n  (\n    sum(rate(pg_stat_database_blks_hit{datname=~\"${datname:regex}\"}[1m]))\n    +\n    sum(rate(pg_stat_database_blks_read{datname=~\"${datname:regex}\"}[1m]))\n  )\n) * 100",
+                        "expr": "(\n  sum(rate(pg_stat_database_blks_hit{datname=~\"${datname}\"}[1m]))\n  /\n  (\n    sum(rate(pg_stat_database_blks_hit{datname=~\"${datname}\"}[1m]))\n    +\n    sum(rate(pg_stat_database_blks_read{datname=~\"${datname}\"}[1m]))\n  )\n) * 100",
                         "format": "time_series",
                         "intervalFactor": 1,
                         "legendFormat": "{{ datname }}",
@@ -459,7 +459,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(container_cpu_usage_seconds_total{name!=\"\"}[1m])) by (name)",
+                        "expr": "sum(rate(container_cpu_usage_seconds_total{name=~\"${container}\"}[1m])) by (name)",
                         "legendFormat": "{{name}}",
                         "range": true
                       }
@@ -571,7 +571,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(container_memory_working_set_bytes{name!=\"\"}) by (name)",
+                        "expr": "sum(container_memory_working_set_bytes{name=~\"${container}\"}) by (name)",
                         "legendFormat": "{{name}}",
                         "range": true
                       }
@@ -690,10 +690,6 @@
                         "instant": false,
                         "legendFormat": "{{datname}}",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "A",
@@ -774,7 +770,7 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(container_memory_usage_bytes{name!=\"\"}) by (name)",
+                        "expr": "sum(container_memory_usage_bytes{name=~\"${container}\"}) by (name)",
                         "legendFormat": "{{name}}",
                         "range": true
                       }
@@ -981,13 +977,9 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(pg_stat_database_tup_fetched{instance=\"$instance\", datname=~\"${datname:regex}\"}[1m]))",
+                        "expr": "sum(rate(pg_stat_database_tup_fetched{instance=\"$instance\", datname=~\"${datname}\"}[1m]))",
                         "legendFormat": "Fetched",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "A",
@@ -1003,14 +995,10 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(pg_stat_database_tup_inserted{instance=\"$instance\", datname=~\"${datname:regex}\"}[1m]))",
+                        "expr": "sum(rate(pg_stat_database_tup_inserted{instance=\"$instance\", datname=~\"${datname}\"}[1m]))",
                         "instant": false,
                         "legendFormat": "Inserted",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "B",
@@ -1030,10 +1018,6 @@
                         "instant": false,
                         "legendFormat": "Updated",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "C",
@@ -1053,10 +1037,6 @@
                         "instant": false,
                         "legendFormat": "Deleted",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "D",
@@ -1170,13 +1150,9 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(container_fs_reads_bytes_total{name!=\"\"}[1m])) by (name)",
+                        "expr": "sum(rate(container_fs_reads_bytes_total{name=~\"${container}\"}[1m])) by (name)",
                         "legendFormat": "{{name}} - Read",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "A",
@@ -1192,14 +1168,10 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(container_fs_writes_bytes_total{name!=\"\"}[1m])) by (name)",
+                        "expr": "sum(rate(container_fs_writes_bytes_total{name=~\"${container}\"}[1m])) by (name)",
                         "instant": false,
                         "legendFormat": "{{name}} - Write",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "B",
@@ -1314,13 +1286,9 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(container_network_receive_bytes_total{name!=\"\"}[1m])) by (name)",
+                        "expr": "sum(rate(container_network_receive_bytes_total{name=~\"${container}\"}[1m])) by (name)",
                         "legendFormat": "{{name}} - RX",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "A",
@@ -1336,14 +1304,10 @@
                       "version": "v0",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(rate(container_network_transmit_bytes_total{name!=\"\"}[1m])) by (name)",
+                        "expr": "sum(rate(container_network_transmit_bytes_total{name=~\"${container}\"}[1m])) by (name)",
                         "instant": false,
                         "legendFormat": "{{name}} - TX",
                         "range": true
-                      },
-                      "labels": {
-                        "grafana.app/export-label": "prometheus-1",
-                        "grafana.app/export-datasource-name": "prometheus"
                       }
                     },
                     "refId": "B",
@@ -1447,7 +1411,7 @@
             "kind": "RowsLayoutRow",
             "spec": {
               "title": "Database Overview (PostgreSQL)",
-              "collapse": true,
+              "collapse": false,
               "layout": {
                 "kind": "GridLayout",
                 "spec": {
@@ -1786,10 +1750,6 @@
               "qryType": 1,
               "query": "label_values(container_memory_working_set_bytes,name)",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
-            },
-            "labels": {
-              "grafana.app/export-label": "prometheus-1",
-              "grafana.app/export-datasource-name": "prometheus"
             }
           },
           "regex": "",
