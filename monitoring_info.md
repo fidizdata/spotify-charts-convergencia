@@ -16,7 +16,7 @@ Para garantizar que cAdvisor pueda inspeccionar los subsistemas del kernel (**cg
   * Activar la casilla de la distribución correspondiente (por ejemplo, `Ubuntu`).
 ---
 
-## 2. Documentación del Proceso Implementado
+## 2. Flujo Operativo
 
 El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 
@@ -45,7 +45,7 @@ El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 
 3. **Automatización y Despliegue (*Grafana Provisioning*)**:
 * **Datasource automático (`grafana/provisioning/datasources/datasources.yaml`)**: Registra la conexión interna a `http://prometheus:9090` de forma predeterminada al levantar el contenedor.
-* **Dashboard automático (`grafana/provisioning/dashboards/dashboards.yaml`)**: Carga el archivo `tablero.json` dentro de Grafana al iniciar el stack, asegurando que cualquier miembro del equipo disponga del panel configurado con sus consultas agregadas (`sum(...) by (name)`).
+* **Dashboard automático (`grafana/provisioning/dashboards/dashboards.yaml`)**: Carga el archivo `tablero.json` dentro de Grafana al iniciar el stack, asegurando que cualquier miembro del equipo disponga del panel configurado.
 
 
 
@@ -76,6 +76,20 @@ El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 * **Disk I/O Throughput per Container**: Mide el caudal de lectura y escritura física hacia el almacenamiento expresado en bytes por segundo para cada contenedor. Resulta indispensable para identificar cuellos de botella en operaciones de entrada/salida (I/O wait) originadas por la base de datos u otros servicios persistentes.
 
 * **Network Traffic per Container**: Cuantifica el ancho de banda entrante (RX) y saliente (TX) que atraviesa las interfaces virtuales de red de cada contenedor. Permite auditar el volumen de datos intercambiado entre la base de datos, las herramientas de administración y los clientes de ingesta o consulta.
+
+---
+
+### Filters
+
+* **Datasource**: Define el origen de datos de Prometheus desde el cual el panel consulta las métricas. Permite alternar la visualización del dashboard entre distintos entornos (por ejemplo, local, pruebas o producción) sin alterar las consultas internas.
+
+* **Interval**: Establece dinámicamente la ventana temporal empleada en las funciones de cálculo de tasa por segundo (rate). Ajusta la suavidad de las pendientes y la granularidad temporal de las métricas según el rango de tiempo visible en el tablero para evitar errores de cálculo por falta de resolución.
+
+* **Instance**: Selecciona el endpoint de red y puerto específico correspondiente al agente postgres_exporter. Resulta indispensable para aislar el monitoreo a un nodo o servidor puntual cuando existen múltiples instancias o réplicas de base de datos.
+
+* **Database**: Filtra las métricas del motor transaccional según la base de datos seleccionada. Permite acotar indicadores como el tamaño en disco, la tasa de transacciones y el uso de caché a una base operativa concreta (spotify_charts) o consolidar la actividad global seleccionando All.
+
+* **Container**: Controla el filtrado de métricas de infraestructura expuestas por cAdvisor a partir del nombre del contenedor Docker. Permite inspeccionar el consumo de CPU, RAM, disco o red de un único servicio de forma aislada o evaluar la carga agregada de todo el stack.
 
 ---
 
