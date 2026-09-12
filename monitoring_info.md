@@ -53,37 +53,29 @@ El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 
 ## 3. Diccionario y Glosario de Paneles
 
-### A. Recursos de Hardware por Contenedor (cAdvisor)
+### Database Overview (PostgreSQL)
 
-* **Uso de CPU por Contenedor (%)**: Porcentaje de tiempo de cómputo consumido por cada contenedor en una ventana móvil de 1 minuto. Permite identificar saturaciones en núcleos de procesador generadas por consultas pesadas o procesos de ingesta continua.
+* **Database Size**: Cuantifica el espacio total en disco ocupado por los archivos de la base de datos seleccionada. Permite dimensionar la tasa de crecimiento del almacenamiento y anticipar problemas de capacidad física en el volumen montado.
 
+* **Cache Hit Ratio**: Mide el porcentaje de bloques de datos que el motor resuelve directamente desde la memoria RAM sin recurrir al almacenamiento persistente. Valores sostenidos superiores al 95-99% indican una operación óptima; caídas pronunciadas señalan que las consultas están forzando lecturas a disco por falta de memoria compartida (shared_buffers).
 
-* **Uso de Memoria RAM por Contenedor**: Consumo total de memoria física residente y de página activa ocupada por cada contenedor (expresado en MiB/GiB). Permite vigilar el límite asignado al motor de base de datos y evitar terminaciones abruptas del proceso por falta de memoria (*Out Of Memory Killer*).
+* **Connections by State**: Expone la cantidad de sesiones abiertas clasificadas por su condición operativa (active, idle, idle in transaction). Sirve para supervisar la concurrencia del motor y detectar fugas de conexiones o transacciones bloqueadas sin cerrar en la capa de aplicación.
 
+* **Transactions per Second (TPS)**: Grafica el ritmo de transacciones confirmadas (commits) versus abortadas (rollbacks) por segundo. Permite evaluar el caudal de operaciones transaccionales y detectar anomalías o errores de ejecución en las aplicaciones cliente cuando la tasa de rollbacks se dispara.
 
+* **Tuple Activity per Second**: Monitorea la tasa de filas procesadas por segundo desglosadas por operación (fetched, inserted, updated, deleted). Permite caracterizar la naturaleza de la carga de trabajo, identificando de inmediato si el motor atraviesa picos de lectura intensiva o ingestas masivas de datos.
 
 ---
 
-### B. Salud y Operación de Base de Datos (Dashboard 9628 - PostgreSQL)
+### Infra & Containers (cAdvisor)
 
-#### Conexiones y Concurrencia
+* **CPU Usage per Container**: Mide la tasa de procesamiento computacional consumida por cada contenedor en unidades de núcleos (cores). Un valor de 1.0 indica el uso sostenido equivalente a un procesador lógico completo saturado al 100%, lo que permite auditar y dimensionar los límites de CPU requeridos por cada servicio.
 
-* **Active Connections / Connections in Use**: Cantidad de clientes y procesos conectados simultáneamente contra la base de datos en comparación con el límite configurado (`max_connections`).
-* **Connection States (Active vs Idle)**: Distribución entre conexiones activas (procesando una consulta en el instante de muestreo) y conexiones inactivas (*idle*, a la espera de nuevas operaciones).
-* **Idle in Transaction**: Conexiones que iniciaron un bloque transaccional (`BEGIN`) pero no ejecutaron un comando posterior ni cerraron con `COMMIT`/`ROLLBACK`. Representan un punto crítico de atención ya que retienen bloqueos de tablas y buffers en memoria.
+* **RAM Working Set per Container**: Refleja la memoria RAM efectiva de la cual el contenedor no puede prescindir sin degradar su ejecución o ser terminado por el sistema (OOM-Killer). A diferencia del uso bruto de memoria, excluye el caché de archivos inactivo del kernel para evitar falsos positivos de saturación.
 
-#### Rendimiento y Flujo de Consultas
+* **Disk I/O Throughput per Container**: Mide el caudal de lectura y escritura física hacia el almacenamiento expresado en bytes por segundo para cada contenedor. Resulta indispensable para identificar cuellos de botella en operaciones de entrada/salida (I/O wait) originadas por la base de datos u otros servicios persistentes.
 
-* **Transactions per Second (TPS)**: Tasa de operaciones confirmadas (`commit`) frente a operaciones abortadas o revertidas (`rollback`) por segundo. Mide la cadencia efectiva de procesamiento de la base de datos.
-* **Tuples Read / Written**: Volumen de registros leídos (*fetched* o escaneados secuencialmente) frente a registros insertados, modificados o eliminados por segundo. Permite dimensionar la carga generada por las tareas de ingesta.
-* **Cache Hit Ratio (Buffer Cache)**: Porcentaje de lecturas resueltas directamente desde la memoria RAM (*shared buffers*) sin acudir a operaciones de I/O en disco. Valores sostenidos por encima del 95-99% confirman una asignación de memoria adecuada para la carga de trabajo habitual.
-* **Block I/O (Read vs Hit)**: Proporción por segundo de bloques de datos recuperados desde el disco rígido versus bloques servidos inmediatamente desde la caché.
-
-#### Bloqueos e Integridad
-
-* **Locks**: Cantidad y tipo de bloqueos concurrentes adquiridos sobre las tablas o índices. Un aumento abrupto en bloqueos exclusivos indica consultas compitiendo por los mismos recursos.
-* **Deadlocks**: Frecuencia de interbloqueos mutuos entre dos o más transacciones donde ninguna puede continuar, obligando al motor a abortar una de ellas automáticamente.
-* **Database Size**: Espacio total en disco ocupado por el conjunto de esquemas, tablas e índices de la base de datos.
+* **Network Traffic per Container**: Cuantifica el ancho de banda entrante (RX) y saliente (TX) que atraviesa las interfaces virtuales de red de cada contenedor. Permite auditar el volumen de datos intercambiado entre la base de datos, las herramientas de administración y los clientes de ingesta o consulta.
 
 ---
 
@@ -97,6 +89,6 @@ docker compose logs grafana
 ```
 ### Acceso a las Interfaces
 
-* **Grafana**: `http://localhost:3000` (Acceso al tablero en la sección **Dashboards** | User: admin Pass: admin).
+* **Dashboard Grafana**: `http://localhost:3000` (Acceso al tablero en la sección **Dashboards** | User: admin Pass: admin).
 * **Prometheus**: `http://localhost:9090` (Explorador de métricas y validación de *targets*).
 * **cAdvisor**: `http://localhost:8080` (Métricas crudas del demonio Docker).

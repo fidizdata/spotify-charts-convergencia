@@ -29,7 +29,7 @@ services:
   postgres_exporter:
       image: prometheuscommunity/postgres-exporter:latest
       environment:
-        DATA_SOURCE_NAME: "postgresql://admin:admin@pgdatabase:5432/spotify_charts?sslmode=disable"
+        DATA_SOURCE_NAME: "postgresql://admin:admin@pgdatabase:5432/spotify_charts?sslmode=disable" # consultar 
       ports:
         - "9187:9187"
       depends_on:
