@@ -51,7 +51,7 @@ El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 
 ---
 
-## 3. Diccionario y Glosario de Paneles
+## 3. Glosario de Paneles
 
 ### Database Overview (PostgreSQL)
 
