@@ -5,6 +5,7 @@ description = "Pipeline de datos y análisis para Spotify charts"
 readme = "../README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dash>=4.4.1",
     "matplotlib>=3.8.0",
     "networkx>=3.2.0",
     "numpy>=1.26.0",
