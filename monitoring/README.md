@@ -4,7 +4,7 @@ Stack de observabilidad automatizado con **cAdvisor**, **PostgreSQL Exporter**, 
 
 ---
 
-## 1. Requisitos para Windows / WSL 2 /
+## 1. Requisitos para Windows
 
 Para garantizar que cAdvisor pueda inspeccionar los subsistemas del kernel (**cgroups**) y que el montaje de volúmenes funcione correctamente en Windows:
 
@@ -95,7 +95,36 @@ El flujo opera bajo un esquema de recopilación basado en sondeo (*pull*):
 
 ## 4. Guía 
 
-### Comandos de Operación y Verificación
+### 1. Levantar PostgreSQL + pgAdmin
+Parado en ./infra  
+
+```bash
+docker compose up -d
+```
+Esto monta los contenedores de la base de datos, y crea la red **_monitoring-net_**.
+
+### 2. Levantar postgres_exporter + prometheus + grafana + cadvisor
+Parado en ./monitoring  
+
+```bash
+docker compose up -d
+```
+Esto monta los contenedores de monitoreo, y se acopla automáticamente a la red **_monitoring-net_**.
+
+### 3. Acceder al tablero en Grafana
+Abrir un navegador e ingresar: `http://localhost:3000`
+* User: admin
+* Pass: admin
+
+Va a pedir cambiar la pass por defecto. Se puede cambiar, o simplemente hacer clic en _skip_.
+
+### 4. Configuración Inicial de Grafana
+* Una vez adentro de Grafana, buscar en el panel izquierdo **_Dashboards_** y hacer click.  
+* Se abrira una lista en el centro, hacer clic en **_PostgreSQL Database_**.
+* Para tener una vista más despejada, dentro del tablero se puede filtrar por _database_:_spotify_charts_.
+* También se puede filtrar por contenedor (ej. _infra-pgdatabase-1_).
+
+### Comando Adicional de Verificación
 
 * Visualizar los registros de inicio de Grafana:
 ```bash
