@@ -1,0 +1,57 @@
+services:
+  postgres_exporter:
+      image: prometheuscommunity/postgres-exporter:latest
+      environment:
+        DATA_SOURCE_NAME: "postgresql://admin:admin@pgdatabase:5432/spotify_charts?sslmode=disable" # consultar 
+      ports:
+        - "9187:9187"
+      networks:
+      - shared_net    
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "prometheus_data:/prometheus"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgres_exporter
+    networks:
+      - shared_net  
+
+  grafana:
+      image: grafana/grafana:latest
+      ports:
+        - "3000:3000"
+      volumes:
+        - "grafana_data:/var/lib/grafana"
+        - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      depends_on:
+        - prometheus
+      networks:
+      - shared_net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - shared_net
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  shared_net:
+    external: true
+    name: monitoring-net
