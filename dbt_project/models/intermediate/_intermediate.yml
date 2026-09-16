@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: int_spotify_charts_top200
+    description: "Tabla con registros del top200"
+    columns:
+      - name: posicion
+        description: "Posición en el ranking"
+        data_tests:
+          - not_null
+
+      - name: region
+        description: "Región del chart"
+        data_tests:
+          - not_null
+
+      - name: fecha
+        description: "Fecha del chart"
+        data_tests:
+          - not_null
+
+      - name: streams
+        description: "Cantidad de reproducciones"
+        data_tests:
+          - not_null
+
+
+        
+
+  - name: int_spotify_charts_viral50
+    description: "Tabla con registros viral50 - no contiene la columna streams"
+    columns:
+      - name: posicion
+        description: "Posición en el ranking"
+        data_tests:
+          - not_null
+
+      - name: region
+        description: "Región del chart"
+        data_tests:
+          - not_null
+
+      - name: fecha
+        description: "Fecha del chart"
+        data_tests:
+          - not_null
+
+
+  - name: int_spotify_charts_top200_processed
+    description: "Tabla con registros top200 limpieza y transformacion."
