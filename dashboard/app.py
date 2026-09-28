@@ -224,14 +224,14 @@ val_inicial = 2021 if 2021 in lista_anios else min_anio
 slider_marks = {str(anio): {'label': str(anio), 'style': {'color': '#ccc', 'fontSize': '11px', 'fontFamily': 'Montserrat'}} for anio in lista_anios}
 
 app.layout = html.Div([
-    html.H1("Mapa de Proximidad de Gustos Musicales (Spotify)", style={'textAlign': 'center', 'color': '#ffffff', 'paddingTop': '20px'}),
+    html.H1("Global Music Similarity Network (Spotify Top 200*)", style={'textAlign': 'center', 'color': '#ffffff', 'paddingTop': '20px'}),
     
     html.Div([
         html.Div([
             # Barra superior: Leyendas + Deslizador de Años
             html.Div([
                 html.Div([
-                    html.Span("Regiones:", style={'color': '#aaa', 'fontWeight': 'bold', 'fontSize': '12px', 'marginRight': '12px'}),
+                    html.Span("Continents:", style={'color': '#aaa', 'fontWeight': 'bold', 'fontSize': '12px', 'marginRight': '12px'}),
                     html.Button([
                         html.Span(style={'height': '10px', 'width': '10px', 'backgroundColor': '#FF5722', 'borderRadius': '50%', 'display': 'inline-block', 'marginRight': '6px'}),
                         html.Span("América Latina", style={'color': '#ccc', 'fontSize': '12px'})
@@ -290,17 +290,38 @@ app.layout = html.Div([
             ]),
             
             html.Hr(style={'borderColor': '#444', 'margin': '15px 0'}),
-            html.H4("Top Artistas", style={'color': '#aaa', 'marginBottom': '10px', 'fontSize': '16px', 'fontWeight': 'bold'}),
+            html.H4("Top Artists*", style={'color': '#aaa', 'marginBottom': '10px', 'fontSize': '16px', 'fontWeight': 'bold'}),
             html.Div(id='top-artists-table-container'),
 
             html.Hr(style={'borderColor': '#444', 'margin': '20px 0 15px 0'}),
-            html.H4("Top Canciones", style={'color': '#aaa', 'marginBottom': '10px', 'fontSize': '16px', 'fontWeight': 'bold'}),
+            html.H4("Top Songs", style={'color': '#aaa', 'marginBottom': '10px', 'fontSize': '16px', 'fontWeight': 'bold'}),
             html.Div(id='top-tracks-table-container')
         ], style={
-            'width': '28%', 'display': 'inline-block', 'verticalAlign': 'top', 
+            'width': '30%', 'display': 'inline-block', 'verticalAlign': 'top', 
             'padding': '20px', 'backgroundColor': '#1e1e1e', 'borderRadius': '5px', 
             'height': '85vh', 'boxSizing': 'border-box', 'marginLeft': '2%', 'overflowY': 'auto'
         })
+
+        ,
+
+        # --- NOTA METODOLÓGICA AL PIE ---
+        html.Div([
+            html.P([
+                "* Data corresponds to the annual Top 200 per country, representing the 200 most-streamed tracks in each region.",
+                html.Br(),
+                "** Top artist correspond to the artist with the highest stream counts within the annual Top200.",
+                html.Br(),
+               "Proximity map derived from cosine similarity"
+            ], style={
+                'color': '#888888', 
+                'fontSize': '11px', 
+                'fontFamily': 'Montserrat', 
+                'textAlign': 'center', 
+                'maxWidth': '900px', 
+                'margin': '25px auto 4px auto',
+                'lineHeight': '1.4'
+            })
+        ])
     ], style={'width': '95%', 'margin': '0 auto'})
 ], style={'minHeight': '100vh', 'backgroundColor': '#121212', 'paddingBottom': '20px', 'fontFamily': 'Montserrat'})
 
@@ -348,23 +369,22 @@ def actualizar_dashboard(anio_seleccionado, click_data, n_clicks_reset, n_latina
     fig_actualizada = construir_figura_grafo(G_mst, pos_nx, df_anio, pais_destacado=pais_seleccionado, region_destacada=region_seleccionada)
 
     detail_content = [
-        html.P(f"Año seleccionado: {anio_actual}", style={'color': '#aaa', 'margin': '0 0 5px 0'}),
-        html.P("Mapa de proximidad basado en similitud de coseno.", style={'color': '#aaa', 'fontSize': '12px', 'margin': '0 0 10px 0'})
+        html.P(f"Year: {anio_actual}", style={'color': '#aaa', 'margin': '0 0 5px 0'})
     ]
 
     if pais_seleccionado and pais_seleccionado in lista_paises:
         cont_val = CONTINENTES_NOMBRES.get(pais_seleccionado, "Otro/Desconocido")
         detail_content.extend([
-            html.H4(f"País: {pais_seleccionado}", style={'color': '#aaa', 'marginTop': '10px', 'marginBottom': '5px', 'fontSize': '16px', 'fontWeight': 'bold'}),
-            html.P(f"Continente: {cont_val}", style={'color': '#aaa', 'margin': '2px 0'})
+            html.H4(f"Country: {pais_seleccionado}", style={'color': '#aaa', 'marginTop': '10px', 'marginBottom': '5px', 'fontSize': '16px', 'fontWeight': 'normal'}),
+            html.P(f"Continent: {cont_val}", style={'color': '#aaa', 'margin': '2px 0'})
         ])
     elif region_seleccionada:
         detail_content.extend([
-            html.H4(f"Región: {region_seleccionada}", style={'color': '#aaa', 'marginTop': '10px', 'marginBottom': '5px', 'fontSize': '16px', 'fontWeight': 'bold'}),
+            html.H4(f"Región: {region_seleccionada}", style={'color': '#aaa', 'marginTop': '10px', 'marginBottom': '5px', 'fontSize': '16px', 'fontWeight': 'normal'}),
             html.P("Visualizando top consolidado para todo el cluster regional.", style={'color': '#aaa', 'margin': '2px 0', 'fontSize': '13px'})
         ])
     else:
-        detail_content.append(html.P("Vista Global / Sin filtros activos.", style={'fontStyle': 'italic', 'color': '#888', 'marginTop': '10px'}))
+        detail_content.append(html.P("Country: Global", style={'fontStyle': 'italic', 'color': '#888', 'marginTop': '10px'}))
 
     if not df_anio.empty:
         if pais_seleccionado and pais_seleccionado in lista_paises:
@@ -380,18 +400,25 @@ def actualizar_dashboard(anio_seleccionado, click_data, n_clicks_reset, n_latina
             .sum()
             .reset_index()
             .sort_values(by="total_streams", ascending=False)
-            .head(10)
+            .head(30)
         )
         df_artistas["Reproducciones"] = df_artistas["total_streams"].apply(lambda x: f"{int(x):,}".replace(",", "."))
         df_artistas = df_artistas.rename(columns={"artist": "Artista"})
+
+        print("--- CANTIDAD DE FILAS EN DF_ARTISTAS:", len(df_artistas))
         
         tabla_artistas = dash_table.DataTable(
             data=df_artistas[["Artista", "Reproducciones"]].to_dict('records'),
             columns=[{"name": i, "id": i} for i in ["Artista", "Reproducciones"]],
-            style_table={'overflowX': 'auto'},
+            page_action='none',  # <--- Desactiva las páginas para usar scroll continuo
+            style_table={
+            'overflowX': 'hidden',
+            'overflowY': 'auto',  # <--- Activa la barra de desplazamiento vertical
+            'height': '360px'     # <--- Altura fija justa para que se vean aprox. 10 filas
+            },
             style_header={'backgroundColor': '#2a2a2a', 'color': 'white', 'fontWeight': 'bold', 'border': 'none', 'fontFamily': 'Montserrat'},
             style_cell={'backgroundColor': '#1e1e1e', 'color': '#ddd', 'textAlign': 'left', 'padding': '8px', 'fontSize': '13px', 'border': 'none', 'borderBottom': '1px solid #333', 'fontFamily': 'Montserrat'},
-            page_size=10
+            page_size=25
         )
 
         df_canciones = (

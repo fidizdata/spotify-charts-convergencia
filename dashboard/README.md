@@ -25,3 +25,11 @@ Asegurate de estar posicionado en la carpeta `dashboard/` donde se encuentra el 
     Una vez generado el dataset, iniciá el servidor del dashboard ejecutando:
     ```bash
     uv run app.py
+
+## Descripción Grafo
+
+Los colores representan los continentes geográficos: América Latina, Europa, Estados Unidos y Oceanía y Paises asiáticos.
+Europa es el país con mas diversidad cultural. Los demás tienen una concentración apreciablemente mayor. Coincidente con que estas regiones tienen un idioma en comun.
+Se aprecia una preponderancia de la similitud idiomática sobre la cercanía geográfica.
+España se alinea con los paises latinoamericanos. Los paises angloparlantes se alinean a pesar de pertenecer a distintos continentes.
+
