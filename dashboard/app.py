@@ -93,7 +93,7 @@ def calcular_grafo_para_anio(df_top200_annual, anio):
 
     df_anio["total_region_streams"] = df_anio.groupby("region")["total_streams"].transform("sum")
     df_anio["share"] = df_anio["total_streams"] / df_anio["total_region_streams"]
-    matriz_shares = df_anio.pivot(index="region", columns="url", values="share").fillna(0.0)
+    matriz_shares = df_anio.pivot(index="region", columns="track_id", values="share").fillna(0.0)
     
     valores = matriz_shares.values
     normas = np.linalg.norm(valores, axis=1, keepdims=True)

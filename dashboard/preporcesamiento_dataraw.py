@@ -24,6 +24,13 @@ def generar_dataset_anual():
     df_clean['rank'] = pd.to_numeric(df_clean['rank'], errors='coerce').astype('Int64')
     df_clean['streams'] = pd.to_numeric(df_clean['streams'], errors='coerce')
 
+    # Generar track_id normalizado con titulo y artista
+    for col in ['title', 'artist']:
+        df_clean[col] = df_clean[col].astype(str)
+    df_clean['track_id'] = (
+        df_clean['title'].str.lower().str.strip() + "_" + df_clean['artist'].str.lower().str.strip()
+    )
+
     total_anios = df_clean['year'].nunique()
     paises_anios = df_clean.groupby('region')['year'].nunique()
     paises_constantes = paises_anios[paises_anios == total_anios].index.tolist()
@@ -32,7 +39,7 @@ def generar_dataset_anual():
     df_clean = df_clean[df_clean['region'] != 'Global'].copy()
 
     df_annual = (
-        df_clean.groupby(["year", "region", "url"])
+        df_clean.groupby(["year", "region", "track_id"])
         .agg(
             total_streams=("streams", "sum"),
             title=("title", "first"),
