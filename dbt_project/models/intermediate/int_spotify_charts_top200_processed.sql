@@ -3,6 +3,7 @@ with top200 as (
     select
         date,
         year,
+        track_id,
         title,
         rank,
         artist,
@@ -40,7 +41,9 @@ cantidad_paises_anio as (
     group by region
 
 ),
+
 menos_200 as (
+
     select region
     from (
         select distinct
@@ -52,10 +55,13 @@ menos_200 as (
     ) p
     group by year, region
     having count(*) < 200
+
 )
+
 select
     t.date,
     t.year,
+    t.track_id,
     t.title,
     t.rank,
     t.artist,

@@ -9,6 +9,7 @@
 select 
     date,
     date_part('year', date) as year,
+    lower(trim(title)) || '_' || lower(trim(artist)) as track_id,
     title,
     rank,
     artist,

@@ -4,6 +4,7 @@ with top200_processed as (
 
     select
         year,
+        track_id,
         title,
         artist,
         region,
@@ -19,6 +20,7 @@ aggregation as (
         region,
         artist,
         title,
+        max(track_id) as track_id,
         sum(streams) as total_streams
     from top200_processed
     group by
@@ -44,6 +46,7 @@ ranked as (
 select
     year,
     region,
+    track_id,
     artist,
     title,
     total_streams
