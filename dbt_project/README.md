@@ -18,6 +18,7 @@ Por lo tanto, los modelos pueden consultarse desde PostgreSQL utilizando:
 
 ```sql
 SELECT *
+
 FROM analytics.nombre_del_modelo;
 ```
 
@@ -65,13 +66,13 @@ Además, se incorpora la columna `year`, obtenida a partir de `date`.
 
 Este modelo se materializa como **TABLE**, ya que contiene aproximadamente 20 millones de registros y es utilizado como base por las transformaciones posteriores.
 
-Se definió un índice sobre:
+Inicialmente se evaluó la creación de un índice sobre:
 
 ```text
 (region, year)
 ```
 
-para facilitar las operaciones posteriores relacionadas con la cobertura de regiones por año.
+para facilitar las operaciones posteriores relacionadas con la cobertura de regiones por año. Luego de las pruebas de rendimiento, el índice fue descartado.
 
 ---
 
@@ -102,16 +103,24 @@ Este modelo se materializa como **VIEW**.
 
 Modelo final destinado al análisis.
 
-Agrupa la información por:
+Primero agrupa la información por:
 
-* año
-* región
-* artista
-* canción
+- año
+- región
+- artista
+- canción
 
 y calcula la suma de `streams` para cada combinación.
 
-Durante la etapa de desarrollo se mantiene como VIEW para facilitar las pruebas. En la versión final del proyecto se materializará como TABLE, constituyendo el modelo final destinado al análisis.
+A partir de esta agregación, se asigna un ranking mediante `row_number()` para cada combinación de año y región, ordenando las canciones por `total_streams` de forma descendente.
+
+Finalmente, se conservan las **200 canciones con mayor cantidad de streams para cada combinación de año y región**.
+
+La unicidad de una canción se determina mediante la combinación:
+
+```text
+(artist, title)
+```
 
 ---
 
@@ -157,24 +166,12 @@ La documentación permite consultar información sobre los modelos, columnas, te
 
 Durante el modelado de `spotify_charts` se evaluó la creación de índices con el objetivo de mejorar el rendimiento de las transformaciones posteriores.
 
-## Índice en `int_spotify_charts_top200`
+Se evaluaron dos alternativas:
 
-El modelo `int_spotify_charts_top200` se materializa como una **TABLE**, ya que representa el subconjunto `top200` que será utilizado por los modelos posteriores.
+1. Un índice parcial sobre la tabla `raw.spotify_charts` para acelerar el filtro `chart = 'top200'`.
+2. Un índice sobre `region` y `year` en `int_spotify_charts_top200`, utilizado por las transformaciones posteriores.
 
-Se definió un índice sobre `region` y `year`:
-
-```sql
-{{ config(
-    materialized='table',
-    indexes=[
-        {'columns': ['region', 'year']}
-    ]
-) }}
-```
-
-La elección responde a que las transformaciones posteriores trabajan principalmente con estas dimensiones, especialmente para validar la cobertura de las regiones a través de los años.
-
-El índice es administrado por dbt y se crea automáticamente durante la materialización del modelo.
+Luego de realizar las pruebas de rendimiento, **ninguno de los dos índices fue incorporado al modelo definitivo**.
 
 ---
 
@@ -186,11 +183,13 @@ También se evaluó la posibilidad de crear un índice parcial sobre `raw.spotif
 WHERE chart = 'top200'
 ```
 
-Se probó conceptualmente el siguiente índice:
+Se creó y evaluó el siguiente índice parcial:
 
 ```sql
 CREATE INDEX idx_spotify_charts_top200
+
 ON public.spotify_charts ((1))
+
 WHERE chart = 'top200';
 ```
 
@@ -198,6 +197,7 @@ Para evaluar su utilidad se utilizó:
 
 ```sql
 EXPLAIN (ANALYZE, BUFFERS)
+
 SELECT 
     date,
     date_part('year', date) AS year,
@@ -209,7 +209,9 @@ SELECT
     chart,
     trend,
     streams
+
 FROM public.spotify_charts
+
 WHERE chart = 'top200';
 ```
 
@@ -223,6 +225,7 @@ La tabla contiene aproximadamente **28,2 millones de registros**, de los cuales 
 Seq Scan on spotify_charts
 
 Rows: 20.321.904
+
 Rows Removed by Filter: 5.851.610
 
 Execution Time: 6777 ms
@@ -234,6 +237,7 @@ Execution Time: 6777 ms
 Seq Scan on spotify_charts
 
 Rows: 20.321.904
+
 Rows Removed by Filter: 5.851.610
 
 Execution Time: 2438 ms
@@ -251,38 +255,127 @@ La principal razón es que `top200` representa aproximadamente el **72% de la ta
 
 Además, `raw.spotify_charts` es una tabla administrada por el proceso de **ingestion** y no por dbt. Incorporar índices en esta capa agregaría mantenimiento al proceso de carga sin que se haya demostrado un beneficio de rendimiento.
 
-La estrategia adoptada es:
+---
+
+## Evaluación de un índice en `int_spotify_charts_top200`
+
+El modelo `int_spotify_charts_top200` se materializa como una **TABLE**, ya que representa el subconjunto `top200` que será utilizado por los modelos posteriores.
+
+Inicialmente se evaluó la creación de un índice sobre `region` y `year`:
+
+```sql
+{{ config(
+    materialized='table',
+    indexes=[
+        {'columns': ['region', 'year']}
+    ]
+) }}
+```
+
+La elección se basó en que las transformaciones posteriores trabajan principalmente con estas dimensiones, especialmente para validar la cobertura de las regiones a través de los años.
+
+Para determinar si el índice aportaba una mejora real, se ejecutó la transformación completa de `int_spotify_charts_top200_processed` con y sin el índice, utilizando:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS)
+```
+
+### Resultado
+
+**Con índice `(region, year)`:**
+
+```text
+Seq Scan on int_spotify_charts_top200
+
+Rows: 20.321.904
+
+Execution Time: 21.734 s
+```
+
+**Sin índice:**
+
+```text
+Seq Scan on int_spotify_charts_top200
+
+Rows: 20.321.904
+
+Execution Time: 21.711 s
+```
+
+En ambos casos PostgreSQL utilizó un **Sequential Scan**.
+
+La diferencia de aproximadamente **23 ms (0,1%)** se considera despreciable y no representa una mejora significativa atribuible al índice.
+
+Además, el análisis del plan mostró que el principal costo de la transformación se encuentra en las operaciones de agregación y deduplicación sobre:
+
+```text
+year, region, artist, title
+```
+
+Una de estas operaciones llegó a utilizar aproximadamente **1 GB de almacenamiento temporal en disco**, por lo que el índice sobre `region` y `year` no ataca el principal cuello de botella de la transformación.
+
+### Decisión
+
+El índice `(region, year)` fue descartado y **no forma parte de la configuración definitiva del modelo**.
+
+La configuración final de `int_spotify_charts_top200` queda simplemente como:
+
+```sql
+{{ config(
+    materialized='table'
+) }}
+```
+
+---
+
+## Decisión final
+
+Luego de evaluar ambas alternativas, se decidió **no incorporar índices adicionales** al modelo.
+
+La arquitectura final queda:
 
 ```text
 raw.spotify_charts
+        │
+        ▼
+stg_spotify_charts
         │
         │ WHERE chart = 'top200'
         ▼
 int_spotify_charts_top200
         │
-        │ INDEX (region, year)
         ▼
-modelos posteriores
+int_spotify_charts_top200_processed
+        │
+        │ Regiones válidas
+        ▼
+marts_spotify_charts_top200_annual
+        │
+        │ Agregación + ranking + Top 200
+        ▼
+Resultado analítico
 ```
 
-De esta forma, el costo del filtro sobre `chart` se asume durante la materialización de `int_spotify_charts_top200`, mientras que el índice se incorpora sobre una tabla administrada por dbt y destinada a ser utilizada por las transformaciones posteriores.
+El filtro `chart = 'top200'` se aplica durante la materialización de `int_spotify_charts_top200`.
+
+Las transformaciones posteriores trabajan sobre esta tabla materializada sin índices adicionales. Esta decisión se basa en los resultados obtenidos mediante `EXPLAIN (ANALYZE, BUFFERS)` y evita agregar estructuras de mantenimiento cuyo beneficio no fue demostrado.
 
 ---
 
 ## Materialización de los modelos
 
-Durante la etapa de desarrollo y validación, algunos modelos se mantienen como VIEW para facilitar las pruebas y ajustes de las transformaciones. Una vez finalizado el modelado, los modelos de la capa marts se materializarán como TABLE, ya que constituyen la capa final de consumo analítico.
+Durante la etapa de desarrollo y validación, algunos modelos se mantienen como `VIEW` para facilitar las pruebas y ajustes de las transformaciones. Una vez finalizado el modelado, los modelos de la capa `marts` se materializarán como `TABLE`, ya que constituyen la capa final de consumo analítico.
 
 La estrategia de materialización adoptada es:
 
-| Modelo                                | Capa         | Materialización | Objetivo                                    |
-| ------------------------------------- | ------------ | --------------- | ------------------------------------------- |
-| `stg_spotify_charts`                  | Staging      | VIEW            | Exponer y estandarizar la fuente            |
-| `int_spotify_charts_top200`           | Intermediate | TABLE           | Persistir el subconjunto `top200`           |
-| `int_spotify_charts_top200_processed` | Intermediate | VIEW            | Aplicar reglas de negocio                   |
-| `marts_spotify_charts_top200_annual`  | Marts        | TABLE           | Exponer el resultado agregado para análisis |
+| Modelo                                | Capa         | Materialización | Objetivo                                          |
+| ------------------------------------- | ------------ | --------------- | --------------------------------------------------|
+| `stg_spotify_charts`                  | Staging      | VIEW            | Exponer y estandarizar la fuente                  |
+| `int_spotify_charts_top200`           | Intermediate | TABLE           | Persistir el subconjunto `top200`                 |
+| `int_spotify_charts_top200_processed` | Intermediate | VIEW            | Aplicar reglas de negocio                         |
+| `marts_spotify_charts_top200_annual`  | Marts        | TABLE           | Generar el Top 200 anual por región para análisis |
 
-Esta decisión busca evitar materializaciones innecesarias y, al mismo tiempo, persistir como tabla el conjunto intermedio de mayor volumen que es reutilizado por las transformaciones posteriores.
+Esta decisión busca evitar materializaciones innecesarias y, al mismo tiempo, persistir como tabla el conjunto intermedio de gran volumen que es reutilizado por las transformaciones posteriores.
 
 ---
 

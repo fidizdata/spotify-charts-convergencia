@@ -2,49 +2,34 @@ version: 2
 
 models:
   - name: int_spotify_charts_top200
-    description: "Tabla con registros del top200"
+    description: "Modelo con los registros correspondientes al chart top200."
+
     columns:
       - name: rank
-        description: "Posición en el ranking"
+        description: "Posición de la canción en el ranking del chart para una fecha determinada."
         data_tests:
           - not_null
 
       - name: region
-        description: "Región del chart"
+        description: "Región o país correspondiente al chart."
         data_tests:
           - not_null
 
       - name: date
-        description: "Fecha del chart"
+        description: "Fecha correspondiente al chart."
         data_tests:
           - not_null
 
       - name: streams
-        description: "Cantidad de reproducciones"
-        data_tests:
-          - not_null
-
-
-        
-
-  - name: int_spotify_charts_viral50
-    description: "Tabla con registros viral50 - no contiene la columna streams"
-    columns:
-      - name: rank
-        description: "Posición en el ranking"
-        data_tests:
-          - not_null
-
-      - name: region
-        description: "Región del chart"
-        data_tests:
-          - not_null
-
-      - name: date
-        description: "Fecha del chart"
+        description: "Cantidad de reproducciones de la canción."
         data_tests:
           - not_null
 
 
   - name: int_spotify_charts_top200_processed
-    description: "Tabla con registros top200 limpieza y transformacion."
+    description: >
+      Modelo que aplica las reglas de negocio para determinar las regiones
+      válidas para el análisis. Se mantienen únicamente las regiones que
+      aparecen en todos los años disponibles y que cuentan con al menos
+      200 canciones distintas en cada año. Una canción se identifica
+      mediante la combinación (artist, title).
