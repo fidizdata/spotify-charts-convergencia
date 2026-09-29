@@ -1,7 +1,8 @@
 with top200 as (
 
     select
-        date_part('year', date) as year,
+        date,
+        year,
         title,
         rank,
         artist,
@@ -38,9 +39,22 @@ cantidad_paises_anio as (
     from paises_distintos_anio
     group by region
 
+),
+menos_200 as (
+    select region
+    from (
+        select distinct
+            year,
+            region,
+            artist,
+            title
+        from top200
+    ) p
+    group by year, region
+    having count(*) < 200
 )
-
 select
+    t.date,
     t.year,
     t.title,
     t.rank,
@@ -51,6 +65,8 @@ select
     t.trend,
     t.streams
 from top200 t
-inner join cantidad_paises_anio c on c.region = t.region
+inner join cantidad_paises_anio c
+    on c.region = t.region
 cross join total_anios ta
 where c.cantidad = ta.total
+  and t.region not in (select region from menos_200)

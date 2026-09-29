@@ -4,7 +4,7 @@ models:
   - name: int_spotify_charts_top200
     description: "Tabla con registros del top200"
     columns:
-      - name: posicion
+      - name: rank
         description: "Posición en el ranking"
         data_tests:
           - not_null
@@ -14,7 +14,7 @@ models:
         data_tests:
           - not_null
 
-      - name: fecha
+      - name: date
         description: "Fecha del chart"
         data_tests:
           - not_null
@@ -30,7 +30,7 @@ models:
   - name: int_spotify_charts_viral50
     description: "Tabla con registros viral50 - no contiene la columna streams"
     columns:
-      - name: posicion
+      - name: rank
         description: "Posición en el ranking"
         data_tests:
           - not_null
@@ -40,7 +40,7 @@ models:
         data_tests:
           - not_null
 
-      - name: fecha
+      - name: date
         description: "Fecha del chart"
         data_tests:
           - not_null
