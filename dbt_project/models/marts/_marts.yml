@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: marts_spotify_charts_top200_annual
+    description: >
+      Modelo analítico que calcula los streams acumulados por año, región,
+      artista y canción. A partir de esta agregación, selecciona las 200
+      canciones con mayor cantidad de streams para cada combinación de año
+      y región.
+
+    columns:
+      - name: year
+        description: "Año correspondiente al período analizado."
+        data_tests:
+          - not_null
+
+      - name: region
+        description: "Región o país correspondiente al chart."
+        data_tests:
+          - not_null
+
+      - name: artist
+        description: "Artista de la canción."
+        data_tests:
+          - not_null
+
+      - name: title
+        description: "Título de la canción."
+        data_tests:
+          - not_null
+
+      - name: total_streams
+        description: "Cantidad total de streams acumulados por la canción, año y región."
+        data_tests:
+          - not_null
