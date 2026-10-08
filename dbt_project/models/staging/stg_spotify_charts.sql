@@ -7,15 +7,15 @@ with source as (
 renamed as (
 
     select
-        title       as titulo,
-        rank        as posicion,
-        artist      as artista,
-        url         as url,
-        region      as region,
-        chart       as tipo_chart,
-        trend       as tendencia,
-        streams     as reproducciones,
-        date        as fecha
+        title,
+        rank,
+        artist,      
+        url,         
+        region,      
+        chart,     
+        trend,      
+        streams,     
+        date        
 
     from source
 
