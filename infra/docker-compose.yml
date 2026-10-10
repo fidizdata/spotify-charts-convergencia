@@ -9,6 +9,8 @@ services:
       - "spotify_charts_postgres_data:/var/lib/postgresql"
     ports:
       - "5432:5432"
+    networks:
+          - shared_net
 
   pgadmin:
     image: dpage/pgadmin4
@@ -19,9 +21,13 @@ services:
       - "pgadmin_data:/var/lib/pgadmin"
     ports:
       - "8085:80"
-
-
+    networks:
+      - shared_net
 
 volumes:
   spotify_charts_postgres_data:
   pgadmin_data:
+
+networks:
+  shared_net:
+    name: monitoring-net

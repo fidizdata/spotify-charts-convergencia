@@ -114,7 +114,7 @@ uv run dbt init
 
 Cuando te pregunte, respondé:
 
-- **host**: `localhost` (acá sí, porque dbt corre en tu PC, no dentro de Docker — se conecta al puerto que Postgres expone hacia afuera)
+- **host**: `localhost`
 - **port**: `5432`
 - **user**: `admin`
 - **password**: `admin`
@@ -137,6 +137,9 @@ uv run dbt build
 ```
 
 Esto corre todos los modelos y todos los tests de una. Si todo pasa en verde, ya tenés la base completa transformada y lista para consultar (por ejemplo desde pgAdmin, en `http://localhost:<puerto-pgadmin>`, o directo con Python).
+
+
+Para mas detalles sobre el modelado de datos del proyecto ver [Modelado de Datos](dbt_project/README.md)
 
 ## Resumen del orden completo
 
