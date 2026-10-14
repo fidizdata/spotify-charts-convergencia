@@ -410,7 +410,7 @@ def plot_metric_robustness(df_rob: pd.DataFrame, ax: plt.Axes | None = None) -> 
     ax.set_xticks(sorted(df_rob["year"].unique()))
     ax.set_xlabel("Año")
     ax.set_ylabel("Distancia media (índice, año inicial = 100)")
-    ax.set_title("Robustez de la divergencia a la definición de distancia")
+    ax.set_title("Robustez de la medida de divergencia a la definición de distancia")
     ax.grid(True, linestyle="--", alpha=0.5)
     ax.legend(title="Métrica")
     return ax
@@ -439,9 +439,9 @@ def compute_concentration_diagnostics(
 
         - ``top_k_share_mean``: mean share of streams held by each region's
           ``top_k`` tracks.
-        - ``global_hit_share``: mean share of each region's streams that comes
+        - ``global_songs_share``: mean share of each region's streams that comes
           from global tracks.
-        - ``global_hit_count``: number of global tracks.
+        - ``global_songs_count``: number of global tracks.
     """
     rows = []
     for year in _years(df_top200):
@@ -471,8 +471,8 @@ def compute_concentration_diagnostics(
             {
                 "year": int(year),
                 "top_k_share_mean": float(top_share.mean()),
-                "global_hit_share": float(global_share.mean()),
-                "global_hit_count": int(len(global_tracks)),
+                "global_songs_share": float(global_share.mean()),
+                "global_songs_count": int(len(global_tracks)),
             }
         )
     return pd.DataFrame(rows)
@@ -966,6 +966,76 @@ def calculate_intracluster_cohesion(
         )
     return pd.DataFrame(rows).sort_values("cluster_id").reset_index(drop=True)
 
+# ... (tus imports existentes) ...
+import hdbscan
+import numpy as np
+import pandas as pd
+
+def detect_hdbscan_clusters(df_top200, year, min_cluster_size=3, min_samples=None, col_track='track_id'):
+    """
+    Detecta comunidades con HDBSCAN usando métrica coseno nativa sobre vectores normalizados.
+    Ventaja: No requiere matriz de distancias (n x n), usa la matriz de features (n_paises x n_tracks).
+    """
+    from sklearn.preprocessing import normalize
+    import hdbscan
+    
+    # 1. Filtrar y Pivotear (Paises x Tracks)
+    df_anio = df_top200[df_top200['year'] == year].copy()
+    if df_anio.empty:
+        raise ValueError(f"No hay datos para el año {year}")
+
+    pivot = df_anio.pivot_table(
+        index='region', columns=col_track, values='total_streams', 
+        aggfunc='sum', fill_value=0
+    )
+    paises = pivot.index.tolist()
+    
+    # 2. NORMALIZACIÓN CRÍTICA: Coseno = producto punto de vectores UNITARIOS (L2 norm)
+    # Esto replica tu lógica de "stream share" pero en norma L2 (estándar para cosine metric).
+    # Si prefieres norma L1 (share), usa normalize(pivot.values, norm='l1'), pero 'cosine' en sklearn/hdbscan asume L2.
+    X_normalized = normalize(pivot.values, norm='l2')  # shape: (n_paises, n_tracks)
+    
+    # 3. HDBSCAN nativo con métrica coseno
+    # min_samples=1 o 2 hace el clustering más "permisivo" (menos outliers) para datasets pequeños (n=53)
+    clusterer = hdbscan.HDBSCAN(
+        min_cluster_size=min_cluster_size,
+        min_samples=min_samples if min_samples is not None else 1, # Default conservador: 1
+        metric='cosine',           # <--- USA LA MÉTRICA NATIVA
+        cluster_selection_method='eom',
+        gen_min_span_tree=True,
+        core_dist_n_jobs=-1        # Paraleliza el cálculo de distancias
+    )
+    clusterer.fit(X_normalized)    # <--- PASA LA MATRIZ DE FEATURES (2D), NO DISTANCIAS
+    
+    labels = clusterer.labels_
+    probs = clusterer.probabilities_
+    
+    # 4. Formatear salida compatible con tu pipeline
+    unique_labels = sorted([l for l in set(labels) if l != -1])
+    label_map = {old: f"Cluster_{i+1}" for i, old in enumerate(unique_labels)}
+    label_map[-1] = "Ruido"
+    
+    registros = []
+    for i, pais in enumerate(paises):
+        raw_label = labels[i]
+        cluster_name = label_map[raw_label]
+        size = sum(1 for l in labels if l == raw_label) if raw_label != -1 else 1
+        
+        registros.append({
+            "region": pais,
+            "cluster_id": cluster_name,
+            "cluster_size": size,
+            "year": year,
+            "min_cluster_size": min_cluster_size,
+            "hdbscan_probability": round(probs[i], 3),
+            "is_outlier": raw_label == -1
+        })
+    
+    df_clusters = pd.DataFrame(registros).sort_values(
+        by=["cluster_id", "region"]
+    ).reset_index(drop=True)
+    
+    return df_clusters, clusterer
 
 # ---- Sensitivity of the partition -------------------------------------------
 
