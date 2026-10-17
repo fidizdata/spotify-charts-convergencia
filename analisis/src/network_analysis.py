@@ -70,7 +70,7 @@ DISTANCE_METRICS = ("cosine_share", "cosine_log1p", "jaccard")
 #: A-priori region of every market (used only for colouring and for the
 #: region-alignment test; the network itself never uses geography).
 REGION_LABELS: dict[str, str] = {
-    # Latin America
+     # Latin America
     "Argentina": "América Latina", "Bolivia": "América Latina", "Brazil": "América Latina",
     "Chile": "América Latina", "Colombia": "América Latina", "Costa Rica": "América Latina",
     "Dominican Republic": "América Latina", "Ecuador": "América Latina",
@@ -78,9 +78,10 @@ REGION_LABELS: dict[str, str] = {
     "Honduras": "América Latina", "Mexico": "América Latina", "Nicaragua": "América Latina",
     "Panama": "América Latina", "Peru": "América Latina", "Paraguay": "América Latina",
     "Uruguay": "América Latina",
-    # North America & Oceania
-    "United States": "Norteamérica & Oceanía", "Canada": "Norteamérica & Oceanía",
-    "Australia": "Norteamérica & Oceanía", "New Zealand": "Norteamérica & Oceanía",
+    # North America
+    "United States": "Norteamérica", "Canada": "Norteamérica",
+    # Oceania
+    "Australia": "Oceanía", "New Zealand": "Oceanía",
     # Europe
     "Austria": "Europa", "Belgium": "Europa", "Switzerland": "Europa",
     "Czech Republic": "Europa", "Germany": "Europa", "Denmark": "Europa",
@@ -99,13 +100,14 @@ CONTINENTES_NOMBRES = REGION_LABELS
 
 #: Fixed region order: drives the legend order and the reproducible node order
 #: of the permutation test in :func:`mst_region_alignment`.
-REGION_ORDER = ("América Latina", "Europa", "Norteamérica & Oceanía", "Asia")
+REGION_ORDER = ("América Latina", "Europa", "Norteamérica", "Oceanía", "Asia")
 UNKNOWN_REGION = "Otro/Desconocido"
 
 REGION_COLORS = {
     "América Latina": "#FF5722",
     "Europa": "#3F51B5",
-    "Norteamérica & Oceanía": "#009688",
+    "Norteamérica": "#009688",  # <- Separado de Oceanía
+    "Oceanía": "#FFC107",       # <- Asignale un color propio o el que prefieras
     "Asia": "#E91E63",
     UNKNOWN_REGION: "#9E9E9E",
 }
